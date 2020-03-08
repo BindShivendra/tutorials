@@ -1,8 +1,17 @@
 const User = require('../models/user');
+const jwt = require('jwt-simple');
+
+function getToken(user) {
+    const timestamp = new Date().getTime();
+    return jwt.encode({ sub: user.id, iat: timestamp }, process.env.SECRET);
+}
 
 exports.signup = function (req, res, next) {
     const email = req.body.email;
     const password = req.body.password;
+    if (!email || !password) {
+        return res.status(422).send({ error: 'Please rovide Email and Password' })
+    }
     User.findOne({ email: email }, function (error, userExists) {
         if (error) {
             return error
@@ -20,8 +29,15 @@ exports.signup = function (req, res, next) {
             if (err) {
                 return next(err)
             }
-            res.status(200).send({ success: true })
+            res.status(200).send({ Token: getToken(user) })
         })
     })
+
+}
+
+exports.sigin = function (req, res, next) {
+    //user exists, provide tiken
+    //passport assign authenticated user on request objects
+    res.status(200).send({ Token: getToken(req.user) })
 
 }
